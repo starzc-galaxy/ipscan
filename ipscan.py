@@ -46,7 +46,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "IPSCAN"))
         item = self.tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("Form", "选择"))
         item = self.tableWidget.horizontalHeaderItem(1)
